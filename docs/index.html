@@ -29,19 +29,6 @@
         pre {
            font-family: 'Inter', sans-serif;
         }
-        /* Spinner for loading state */
-        .spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #5b21b6; /* deep-purple-700 */
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -50,7 +37,6 @@
         <header class="text-center mb-10">
             <h1 class="text-4xl font-bold text-gray-900">Fashion Prompt Lookbook</h1>
             <p class="mt-2 text-lg text-gray-600">Koleksi prompt kreatif dengan model Nenek Indonesia.</p>
-            <p class="mt-1 text-sm text-gray-500">✨ Didukung oleh Gemini API untuk pengembangan gaya.</p>
         </header>
 
         <main id="prompt-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -118,47 +104,6 @@
             document.body.removeChild(tempTextArea);
         }
 
-        async function generateStyleVariations(style, buttonElement, outputElement) {
-            buttonElement.disabled = true;
-            buttonElement.innerHTML = '<div class="spinner mx-auto"></div>';
-            outputElement.innerHTML = '';
-            outputElement.classList.remove('hidden');
-
-            const userPrompt = `Based on the fashion style "${style}", generate three new, creative, and detailed style variations. Present them as a numbered list. For example:\n1. [Variation 1]\n2. [Variation 2]\n3. [Variation 3]`;
-            
-            const payload = { contents: [{ role: "user", parts: [{ text: userPrompt }] }] };
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0]) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    const variations = text.split('\n').filter(line => line.trim().length > 0);
-                    const htmlList = variations.map(v => `<li class="mb-2">${v.replace(/^\d+\.\s*/, '')}</li>`).join('');
-                    outputElement.innerHTML = `<ol class="list-decimal list-inside text-sm text-gray-700">${htmlList}</ol>`;
-                } else {
-                    throw new Error("No content received from API.");
-                }
-
-            } catch (error) {
-                console.error("Error calling Gemini API:", error);
-                outputElement.innerHTML = `<p class="text-red-500 text-sm">Gagal memuat saran gaya. Silakan coba lagi.</p>`;
-            } finally {
-                buttonElement.disabled = false;
-                buttonElement.innerHTML = '✨ Kembangkan Gaya';
-            }
-        }
-
         prompts.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'card bg-white rounded-xl shadow-md overflow-hidden flex flex-col';
@@ -179,17 +124,11 @@
                             <div><p><span class="font-medium text-gray-500">Background:</span> ${item.data.background}</p></div>
                         </div>
                     </div>
-                    <div id="gemini-output-${index}" class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg hidden"></div>
                 </div>
-                <div class="p-4 bg-gray-50 border-t border-gray-200 grid grid-cols-2 sm:grid-cols-2 gap-3">
-                    <div class="grid grid-cols-2 gap-3 col-span-2 sm:col-span-1">
-                         <button class="btn-copy-template w-full bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 btn-copy text-sm">Salin Template</button>
-                         <button class="btn-copy-prompt w-full bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 btn-copy text-sm">Salin Prompt</button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 col-span-2 sm:col-span-1">
-                        <button class="btn-copy-all w-full bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 btn-copy text-sm">Salin Semua</button>
-                        <button id="gemini-btn-${index}" class="btn-generate-style w-full bg-purple-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 btn-copy text-sm">✨ Kembangkan Gaya</button>
-                    </div>
+                <div class="p-4 bg-gray-50 border-t border-gray-200 grid grid-cols-3 gap-3">
+                    <button class="btn-copy-template w-full bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 btn-copy text-sm">Salin Template</button>
+                    <button class="btn-copy-prompt w-full bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 btn-copy text-sm">Salin Prompt</button>
+                    <button class="btn-copy-all w-full bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 btn-copy text-sm">Salin Semua</button>
                 </div>
             `;
             
@@ -199,10 +138,6 @@
             card.querySelector('.btn-copy-template').addEventListener('click', () => copyToClipboard(JSON.stringify(jsonTemplate, null, 2)));
             card.querySelector('.btn-copy-prompt').addEventListener('click', () => copyToClipboard(item.data.prompt));
             card.querySelector('.btn-copy-all').addEventListener('click', () => copyToClipboard(JSON.stringify(item.data, null, 2)));
-
-            const geminiBtn = card.querySelector(`#gemini-btn-${index}`);
-            const geminiOutput = card.querySelector(`#gemini-output-${index}`);
-            geminiBtn.addEventListener('click', () => generateStyleVariations(item.data.style, geminiBtn, geminiOutput));
         });
     </script>
 </body>
